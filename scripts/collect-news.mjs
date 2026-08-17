@@ -14,7 +14,15 @@ const feeds = [
   { source: 'TechCrunch AI', url: 'https://techcrunch.com/category/artificial-intelligence/feed/' },
   { source: 'The Verge AI', url: 'https://www.theverge.com/rss/ai-artificial-intelligence/index.xml' },
   { source: 'VentureBeat AI', url: 'https://venturebeat.com/category/ai/feed/' },
-  { source: 'MIT Technology Review AI', url: 'https://www.technologyreview.com/topic/artificial-intelligence/feed/' }
+  { source: 'MIT Technology Review AI', url: 'https://www.technologyreview.com/topic/artificial-intelligence/feed/' },
+  { source: 'AWS Machine Learning', url: 'https://aws.amazon.com/blogs/machine-learning/feed/' },
+  { source: 'Apple Machine Learning Research', url: 'https://machinelearning.apple.com/rss.xml' },
+  { source: 'GitHub AI & ML', url: 'https://github.blog/ai-and-ml/feed/' },
+  { source: 'Berkeley AI Research', url: 'https://bair.berkeley.edu/blog/feed.xml' },
+  { source: 'IEEE Spectrum AI', url: 'https://spectrum.ieee.org/feeds/topic/artificial-intelligence.rss' },
+  { source: 'Cloudflare Blog', url: 'https://blog.cloudflare.com/rss/', filterAi: true },
+  { source: 'WIRED AI', url: 'https://www.wired.com/feed/tag/ai/latest/rss' },
+  { source: 'Mozilla Blog', url: 'https://blog.mozilla.org/en/feed/', filterAi: true }
 ];
 
 const cutoff = Date.now() - 24 * 60 * 60 * 1000;
@@ -88,11 +96,12 @@ if (!uniqueItems.length) {
 }
 if (!process.env.OPENAI_API_KEY) throw new Error('OPENAI_API_KEY が必要です。');
 
-console.log(`candidate articles: ${uniqueItems.length}`);
+const candidatesForAi = uniqueItems.slice(0, 50);
+console.log(`candidate articles: ${uniqueItems.length} (sending ${candidatesForAi.length} to AI)`);
 const client = new OpenAI();
 const response = await client.responses.create({
   model: process.env.OPENAI_MODEL ?? 'gpt-5-mini',
-  input: `次の候補から日本語読者に重要なAIニュースを最大7件選び、読みやすく内容の濃いデイリーダイジェストを作成してください。企業・研究機関による一次情報と報道媒体による二次情報を明確に区別し、情報源にないことを加えないでください。descriptionは記事内容だけを簡潔に1〜2文で書き、作成方法や注意書きは含めないでください。bodyMarkdownは前置きや「イントロ」から始めず、すぐ最初のニュースへ入ってください。各ニュースは「## 番号. 見出し」「**出典：** [媒体名の記事を読む](記事URL)」「**要旨：** 4〜7文」「### ポイント」「### 注意点」の順に統一してください。要旨では発表・報道の内容だけでなく、背景、重要性、利用者や業界への影響を、候補に含まれる情報の範囲で250〜450字程度にまとめてください。短い言い換えだけで終わらせず、一方で推測による水増しは禁止します。「要旨（事実）」という表現は禁止です。最後に定型の総括、注意書き、参考リンク一覧を繰り返さないでください。各ニュースの出典リンクとselectedSourceUrlsには候補のURLを一字も変更せず正確に使ってください。JSONで title, description, category, bodyMarkdown, selectedSourceUrls を返してください。候補: ${JSON.stringify(uniqueItems)}`,
+  input: `次の候補から日本語読者に重要なAIニュースを最大10件選び、読みやすく内容の濃いデイリーダイジェストを作成してください。企業・研究機関による一次情報と報道媒体による二次情報を明確に区別し、情報源にないことを加えないでください。descriptionは記事内容だけを簡潔に1〜2文で書き、作成方法や注意書きは含めないでください。bodyMarkdownは前置きや「イントロ」から始めず、すぐ最初のニュースへ入ってください。各ニュースは「## 番号. 見出し」「**出典：** [媒体名の記事を読む](記事URL)」「**要旨：** 4〜7文」「### ポイント」「### 注意点」の順に統一してください。要旨では発表・報道の内容だけでなく、背景、重要性、利用者や業界への影響を、候補に含まれる情報の範囲で250〜450字程度にまとめてください。短い言い換えだけで終わらせず、一方で推測による水増しは禁止します。「要旨（事実）」という表現は禁止です。最後に定型の総括、注意書き、参考リンク一覧を繰り返さないでください。各ニュースの出典リンクとselectedSourceUrlsには候補のURLを一字も変更せず正確に使ってください。JSONで title, description, category, bodyMarkdown, selectedSourceUrls を返してください。候補: ${JSON.stringify(candidatesForAi)}`,
   text: {
     format: {
       type: 'json_schema',
