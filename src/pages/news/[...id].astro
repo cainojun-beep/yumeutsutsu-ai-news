@@ -1,12 +1,71 @@
 ---
 import { getCollection, render } from 'astro:content';
 import BaseLayout from '../../layouts/BaseLayout.astro';
-export async function getStaticPaths(){return (await getCollection('news',({data})=>!data.draft)).map(post=>({params:{id:post.id},props:{post}}));}
+
+export async function getStaticPaths() {
+  return (await getCollection('news', ({ data }) => !data.draft)).map((post) => ({
+    params: { id: post.id },
+    props: { post }
+  }));
+}
+
 const { post } = Astro.props;
 const { Content } = await render(post);
-const fmt = new Intl.DateTimeFormat('ja-JP',{dateStyle:'long'}).format(post.data.publishedAt);
+const fmt = new Intl.DateTimeFormat('ja-JP', { dateStyle: 'long' }).format(post.data.publishedAt);
 ---
+
 <BaseLayout title={`${post.data.title}｜AI FRONTIER`} description={post.data.description}>
-  <article class="article wrap"><a class="back" href="/">← 最新ニュースへ</a><p class="meta">{fmt} · {post.data.category}</p><h1>{post.data.title}</h1><p class="dek">{post.data.description}</p><div class="prose"><Content /></div><aside><h2>情報源</h2><ul>{post.data.sources.map(s=><li><a href={s.url} rel="noopener noreferrer" target="_blank">{s.name} ↗</a></li>)}</ul><p>本記事は公開情報をもとにAIを活用して下書きを作成し、情報源を明記しています。</p></aside></article>
+  <article class="article wrap">
+    <a class="back" href="/">← 最新ニュースへ</a>
+
+    <header class="article-header">
+      <p class="meta"><span>{post.data.category}</span><time>{fmt}</time></p>
+      <h1>{post.data.title}</h1>
+      <p class="dek">{post.data.description}</p>
+    </header>
+
+    <div class="prose"><Content /></div>
+
+    <aside class="sources">
+      <p class="eyebrow">SOURCES</p>
+      <h2>この記事の情報源</h2>
+      <ul>{post.data.sources.map((source) => <li><a href={source.url} rel="noopener noreferrer" target="_blank">{source.name}<span>↗</span></a></li>)}</ul>
+      <div class="note">
+        <strong>記事について</strong>
+        <p>本記事は公開情報をもとにAIを活用して作成しています。一次情報と報道・論評を区別し、参照した情報源を明記しています。</p>
+      </div>
+    </aside>
+  </article>
 </BaseLayout>
-<style>.article{max-width:820px;padding:70px 0 110px}.back{color:var(--accent);font-weight:700}.meta{margin-top:55px;color:var(--muted);font-size:13px}.article h1{font-family:var(--serif);font-size:clamp(36px,6vw,62px);line-height:1.35;letter-spacing:-.03em}.dek{font-size:20px;color:var(--muted);border-left:4px solid var(--accent);padding-left:20px}.prose{font-family:var(--serif);font-size:18px;margin:60px 0}.prose :global(h2){font-size:30px;margin-top:2.2em}.prose :global(a),aside a{color:var(--accent);text-decoration:underline}aside{background:white;border:1px solid var(--line);padding:28px}aside h2{font-size:18px}aside p{font-size:12px;color:var(--muted)}</style>
+
+<style>
+  .article{max-width:900px;padding:60px 0 120px}
+  .back{display:inline-flex;color:var(--accent);font-size:14px;font-weight:800;text-decoration:none}
+  .back:hover{text-decoration:underline}
+  .article-header{margin-top:42px;padding-bottom:42px;border-bottom:1px solid var(--line)}
+  .meta{display:flex;align-items:center;gap:14px;margin:0 0 22px;color:var(--muted);font-size:13px;font-weight:700}
+  .meta span{display:inline-block;padding:6px 11px;border-radius:999px;background:var(--accent);color:#fff;letter-spacing:.04em}
+  .article h1{max-width:850px;margin:0;font-family:var(--serif);font-size:clamp(34px,5.8vw,58px);font-weight:800;line-height:1.32;letter-spacing:-.035em}
+  .dek{max-width:760px;margin:28px 0 0;padding:20px 22px;border-left:5px solid var(--accent);background:rgba(255,255,255,.62);color:#434343;font-size:18px;font-weight:600;line-height:1.9}
+  .prose{font-family:var(--serif);font-size:18px;line-height:2;margin:54px 0 72px;color:#202020}
+  .prose :global(h2){margin:2.8em 0 1em;padding:16px 0 16px 22px;border-left:7px solid var(--accent);border-bottom:1px solid var(--line);font-family:var(--sans);font-size:clamp(24px,4vw,32px);font-weight:900;line-height:1.5;letter-spacing:-.02em}
+  .prose :global(h2:first-child){margin-top:0}
+  .prose :global(h3){margin:2em 0 .65em;color:#232323;font-family:var(--sans);font-size:20px;font-weight:900;line-height:1.55}
+  .prose :global(p){margin:0 0 1.35em}
+  .prose :global(strong){font-weight:900;color:#111}
+  .prose :global(ul),.prose :global(ol){margin:1.1em 0 1.7em;padding:18px 24px 18px 44px;border-radius:8px;background:rgba(255,255,255,.65)}
+  .prose :global(li){margin:.6em 0;padding-left:.25em}
+  .prose :global(a),.sources a{color:var(--accent);font-weight:700;text-decoration:underline;text-underline-offset:3px;overflow-wrap:anywhere}
+  .sources{padding:32px;border:1px solid var(--line);border-top:5px solid var(--accent);background:#fff}
+  .eyebrow{margin:0;color:var(--accent);font-size:11px;font-weight:900;letter-spacing:.18em}
+  .sources h2{margin:6px 0 22px;font-size:24px;font-weight:900}
+  .sources ul{display:grid;gap:0;margin:0;padding:0;list-style:none}
+  .sources li{border-top:1px solid var(--line)}
+  .sources li:last-child{border-bottom:1px solid var(--line)}
+  .sources li a{display:flex;justify-content:space-between;gap:16px;padding:13px 4px;text-decoration:none}
+  .sources li a:hover{text-decoration:underline}
+  .note{margin-top:28px;padding:20px;border-radius:8px;background:#f5f3ee}
+  .note strong{font-size:14px;font-weight:900}
+  .note p{margin:7px 0 0;color:var(--muted);font-size:13px;line-height:1.8}
+  @media(max-width:640px){.article{padding:34px 18px 80px}.article-header{margin-top:30px;padding-bottom:34px}.meta{align-items:flex-start;flex-direction:column;gap:10px}.dek{font-size:16px;padding:16px 17px}.prose{font-size:17px;margin-top:40px}.prose :global(h2){padding:13px 0 13px 16px;border-left-width:5px}.sources{padding:22px}}
+</style>
