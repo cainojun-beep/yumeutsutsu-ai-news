@@ -55,11 +55,11 @@ for (const { source, url, filterAi = false } of feeds) {
 
     for (const entry of entries) {
       const title = textValue(entry.title);
-      const summary = textValue(entry.description ?? entry.summary ?? entry.content)
+      const summary = textValue(entry['content:encoded'] ?? entry.content ?? entry.description ?? entry.summary)
         .replace(/<[^>]+>/g, ' ')
         .replace(/\s+/g, ' ')
         .trim()
-        .slice(0, 1200);
+        .slice(0, 4000);
       const link = itemLink(entry);
       const published = new Date(entry.pubDate ?? entry.published ?? entry.updated ?? entry['dc:date'] ?? 0);
       if (!Number.isFinite(published.valueOf()) || published.valueOf() < cutoff || !link) continue;
@@ -92,7 +92,7 @@ console.log(`candidate articles: ${uniqueItems.length}`);
 const client = new OpenAI();
 const response = await client.responses.create({
   model: process.env.OPENAI_MODEL ?? 'gpt-5-mini',
-  input: `次の候補から日本語読者に重要なAIニュースを最大7件選び、読みやすいデイリーダイジェストを作成してください。企業・研究機関による一次情報と報道媒体による二次情報を明確に区別し、情報源にないことを加えないでください。descriptionは記事内容だけを簡潔に1〜2文で書き、作成方法や注意書きは含めないでください。bodyMarkdownは前置きや「イントロ」から始めず、すぐ最初のニュースへ入ってください。各ニュースは「## 番号. 見出し」「**要旨：** 2〜4文」「### ポイント」「### 注意点」の順に統一してください。「要旨（事実）」という表現は禁止です。最後に定型の総括、注意書き、参考リンク一覧を繰り返さないでください。出典URLはselectedSourceUrlsへ正確に入れてください。全体は簡潔な日本語にしてください。JSONで title, description, category, bodyMarkdown, selectedSourceUrls を返してください。候補: ${JSON.stringify(uniqueItems)}`,
+  input: `次の候補から日本語読者に重要なAIニュースを最大7件選び、読みやすく内容の濃いデイリーダイジェストを作成してください。企業・研究機関による一次情報と報道媒体による二次情報を明確に区別し、情報源にないことを加えないでください。descriptionは記事内容だけを簡潔に1〜2文で書き、作成方法や注意書きは含めないでください。bodyMarkdownは前置きや「イントロ」から始めず、すぐ最初のニュースへ入ってください。各ニュースは「## 番号. 見出し」「**出典：** [媒体名の記事を読む](記事URL)」「**要旨：** 4〜7文」「### ポイント」「### 注意点」の順に統一してください。要旨では発表・報道の内容だけでなく、背景、重要性、利用者や業界への影響を、候補に含まれる情報の範囲で250〜450字程度にまとめてください。短い言い換えだけで終わらせず、一方で推測による水増しは禁止します。「要旨（事実）」という表現は禁止です。最後に定型の総括、注意書き、参考リンク一覧を繰り返さないでください。各ニュースの出典リンクとselectedSourceUrlsには候補のURLを一字も変更せず正確に使ってください。JSONで title, description, category, bodyMarkdown, selectedSourceUrls を返してください。候補: ${JSON.stringify(uniqueItems)}`,
   text: {
     format: {
       type: 'json_schema',
