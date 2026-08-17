@@ -1,0 +1,32 @@
+name: Daily AI News
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 22 * * *'
+permissions:
+  contents: write
+concurrency:
+  group: daily-ai-news
+  cancel-in-progress: false
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run collect
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          OPENAI_MODEL: gpt-5-mini
+      - run: npm run build
+      - name: Commit today's digest
+        run: |
+          git config user.name "AI Frontier Bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add src/content/news
+          git diff --cached --quiet || git commit -m "Add daily AI digest"
+          git push
