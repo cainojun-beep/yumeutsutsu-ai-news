@@ -92,7 +92,7 @@ console.log(`candidate articles: ${uniqueItems.length}`);
 const client = new OpenAI();
 const response = await client.responses.create({
   model: process.env.OPENAI_MODEL ?? 'gpt-5-mini',
-  input: `次の候補から日本語読者に重要なAIニュースを最大7件選び、1本のデイリーダイジェスト記事を作成してください。企業・研究機関による一次情報と報道媒体による二次情報を明確に区別し、事実と推測を分け、情報源にないことを加えないでください。本文中でも出典を明示してください。JSONで title, description, category, bodyMarkdown, selectedSourceUrls を返してください。候補: ${JSON.stringify(uniqueItems)}`,
+  input: `次の候補から日本語読者に重要なAIニュースを最大7件選び、読みやすいデイリーダイジェストを作成してください。企業・研究機関による一次情報と報道媒体による二次情報を明確に区別し、情報源にないことを加えないでください。descriptionは記事内容だけを簡潔に1〜2文で書き、作成方法や注意書きは含めないでください。bodyMarkdownは前置きや「イントロ」から始めず、すぐ最初のニュースへ入ってください。各ニュースは「## 番号. 見出し」「**要旨：** 2〜4文」「### ポイント」「### 注意点」の順に統一してください。「要旨（事実）」という表現は禁止です。最後に定型の総括、注意書き、参考リンク一覧を繰り返さないでください。出典URLはselectedSourceUrlsへ正確に入れてください。全体は簡潔な日本語にしてください。JSONで title, description, category, bodyMarkdown, selectedSourceUrls を返してください。候補: ${JSON.stringify(uniqueItems)}`,
   text: {
     format: {
       type: 'json_schema',
