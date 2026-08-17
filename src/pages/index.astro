@@ -1,0 +1,26 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../layouts/BaseLayout.astro';
+const posts = (await getCollection('news', ({ data }) => !data.draft)).sort((a,b) => b.data.publishedAt.valueOf()-a.data.publishedAt.valueOf());
+const [lead, ...rest] = posts;
+const fmt = (d: Date) => new Intl.DateTimeFormat('ja-JP',{year:'numeric',month:'long',day:'numeric'}).format(d);
+---
+<BaseLayout title="AI FRONTIER｜世界のAIニュースを日本語で">
+  <section class="hero wrap">
+    <p class="eyebrow">DAILY AI INTELLIGENCE</p>
+    <h1>世界のAIを、<br/><em>一歩先</em>で読む。</h1>
+    <p class="intro">直近24時間の重要なAIニュースを厳選。一次情報へのリンクとともに、背景・影響を日本語でわかりやすく届けます。</p>
+  </section>
+  {lead && <section class="lead wrap">
+    <div class="lead-art"><span>{lead.data.category}</span><b>01</b></div>
+    <article><p class="meta">{fmt(lead.data.publishedAt)} · {lead.data.category}</p><h2><a href={`/news/${lead.id}/`}>{lead.data.title}</a></h2><p>{lead.data.description}</p><a class="read" href={`/news/${lead.id}/`}>記事を読む →</a></article>
+  </section>}
+  <section class="latest wrap">
+    <div class="section-title"><p>LATEST STORIES</p><h2>最新ニュース</h2></div>
+    <div class="grid">{rest.map((post,index) => <article class="card"><p class="number">{String(index+2).padStart(2,'0')}</p><p class="meta">{fmt(post.data.publishedAt)} · {post.data.category}</p><h3><a href={`/news/${post.id}/`}>{post.data.title}</a></h3><p>{post.data.description}</p><a class="read" href={`/news/${post.id}/`}>続きを読む →</a></article>)}</div>
+  </section>
+  <section class="promise"><div class="wrap"><p>OUR POLICY</p><h2>速さだけでなく、<br/>確かさを。</h2><div><p>情報源を明記</p><p>事実と解説を区別</p><p>誤りは速やかに訂正</p></div></div></section>
+</BaseLayout>
+<style>
+  .hero{padding:90px 0 72px}.eyebrow,.section-title p,.promise>.wrap>p{color:var(--accent);font-weight:700;letter-spacing:.18em;font-size:12px}.hero h1{font-family:var(--serif);font-size:clamp(48px,8vw,92px);line-height:1.14;margin:20px 0 28px;letter-spacing:-.04em}.hero em{color:var(--accent);font-style:normal}.intro{max-width:650px;color:var(--muted);font-size:17px}.lead{display:grid;grid-template-columns:1fr 1.25fr;background:var(--ink);color:white;min-height:390px;margin-bottom:100px}.lead-art{background:var(--accent);padding:38px;display:flex;flex-direction:column;justify-content:space-between}.lead-art span{letter-spacing:.16em}.lead-art b{font-family:var(--serif);font-size:110px;line-height:1;opacity:.9}.lead article{padding:clamp(32px,5vw,64px)}.lead h2{font-family:var(--serif);font-size:clamp(28px,4vw,45px);line-height:1.5;margin:15px 0}.meta{font-size:12px;letter-spacing:.08em;color:#8b9aa2}.read{display:inline-block;margin-top:18px;color:var(--accent);font-weight:700}.section-title{display:flex;align-items:end;justify-content:space-between;border-bottom:2px solid var(--ink)}.section-title h2{font-family:var(--serif);font-size:38px;margin:0 0 12px}.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:0;margin-bottom:100px}.card{padding:36px 30px 40px 0;border-bottom:1px solid var(--line);min-height:330px}.card:not(:nth-child(3n)){border-right:1px solid var(--line);margin-right:30px}.number{font-family:var(--serif);font-size:40px;color:var(--accent);margin:0}.card h3{font-family:var(--serif);font-size:22px;line-height:1.55}.card>p:not(.meta,.number){color:var(--muted);font-size:14px}.promise{background:#eadfcd;padding:90px 0}.promise h2{font-family:var(--serif);font-size:48px;line-height:1.4}.promise .wrap>div{display:flex;gap:50px;font-weight:700}@media(max-width:760px){.hero{padding-top:55px}.lead{grid-template-columns:1fr}.lead-art{min-height:170px}.lead-art b{font-size:70px}.grid{grid-template-columns:1fr}.card,.card:not(:nth-child(3n)){border-right:0;margin-right:0}.promise .wrap>div{display:block}}
+</style>
