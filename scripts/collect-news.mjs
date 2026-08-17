@@ -10,7 +10,11 @@ const feeds = [
   { source: 'MIT AI', url: 'https://news.mit.edu/topic/mitartificial-intelligence2-rss.xml' },
   { source: 'NVIDIA Blog', url: 'https://blogs.nvidia.com/feed/', filterAi: true },
   { source: 'NVIDIA Developer', url: 'https://developer.nvidia.com/blog/feed/', filterAi: true },
-  { source: 'Hugging Face', url: 'https://huggingface.co/blog/feed.xml' }
+  { source: 'Hugging Face', url: 'https://huggingface.co/blog/feed.xml' },
+  { source: 'TechCrunch AI', url: 'https://techcrunch.com/category/artificial-intelligence/feed/' },
+  { source: 'The Verge AI', url: 'https://www.theverge.com/rss/ai-artificial-intelligence/index.xml' },
+  { source: 'VentureBeat AI', url: 'https://venturebeat.com/category/ai/feed/' },
+  { source: 'MIT Technology Review AI', url: 'https://www.technologyreview.com/topic/artificial-intelligence/feed/' }
 ];
 
 const cutoff = Date.now() - 24 * 60 * 60 * 1000;
@@ -88,7 +92,7 @@ console.log(`candidate articles: ${uniqueItems.length}`);
 const client = new OpenAI();
 const response = await client.responses.create({
   model: process.env.OPENAI_MODEL ?? 'gpt-5-mini',
-  input: `次の候補から日本語読者に重要なAIニュースを最大7件選び、1本のデイリーダイジェスト記事を作成してください。事実と推測を分け、情報源にないことを加えないでください。本文中でも出典を明示してください。JSONで title, description, category, bodyMarkdown, selectedSourceUrls を返してください。候補: ${JSON.stringify(uniqueItems)}`,
+  input: `次の候補から日本語読者に重要なAIニュースを最大7件選び、1本のデイリーダイジェスト記事を作成してください。企業・研究機関による一次情報と報道媒体による二次情報を明確に区別し、事実と推測を分け、情報源にないことを加えないでください。本文中でも出典を明示してください。JSONで title, description, category, bodyMarkdown, selectedSourceUrls を返してください。候補: ${JSON.stringify(uniqueItems)}`,
   text: {
     format: {
       type: 'json_schema',
