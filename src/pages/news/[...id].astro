@@ -12,24 +12,28 @@ export async function getStaticPaths() {
 const { post } = Astro.props;
 const { Content } = await render(post);
 const fmt = new Intl.DateTimeFormat('ja-JP', { dateStyle: 'long' }).format(post.data.publishedAt);
+const outletLinks = [...new Map(post.data.sources.map((source) => {
+  const url = new URL(source.url);
+  return [source.name, { name: source.name, url: url.origin }];
+})).values()];
 ---
 
 <BaseLayout title={`${post.data.title}｜AI FRONTIER`} description={post.data.description}>
   <article class="article wrap">
     <a class="back" href="/">← 最新ニュースへ</a>
 
-    <header class="article-header">
+    <div class="article-header">
       <p class="meta"><span>{post.data.category}</span><time>{fmt}</time></p>
       <h1>{post.data.title}</h1>
       <p class="dek">{post.data.description}</p>
-    </header>
+    </div>
 
     <div class="prose"><Content /></div>
 
     <aside class="sources">
       <p class="eyebrow">SOURCES</p>
       <h2>この記事の情報源</h2>
-      <ul>{post.data.sources.map((source) => <li><a href={source.url} rel="noopener noreferrer" target="_blank">{source.name}<span>↗</span></a></li>)}</ul>
+      <ul>{outletLinks.map((source) => <li><a href={source.url} rel="noopener noreferrer" target="_blank">{source.name} トップページ<span>↗</span></a></li>)}</ul>
       <div class="note">
         <strong>記事について</strong>
         <p>本記事は公開情報をもとにAIを活用して作成しています。一次情報と報道・論評を区別し、参照した情報源を明記しています。</p>
