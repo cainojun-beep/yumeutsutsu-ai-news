@@ -101,7 +101,7 @@ console.log(`candidate articles: ${uniqueItems.length} (sending ${candidatesForA
 const client = new OpenAI();
 const response = await client.responses.create({
   model: process.env.OPENAI_MODEL ?? 'gpt-5-mini',
-  input: `次の候補から日本語読者に重要なAIニュースを最大10件選び、読みやすく内容の濃いデイリーダイジェストを作成してください。企業・研究機関による一次情報と報道媒体による二次情報を明確に区別し、情報源にないことを加えないでください。descriptionは記事内容だけを簡潔に1〜2文で書き、作成方法や注意書きは含めないでください。bodyMarkdownは前置きや「イントロ」から始めず、すぐ最初のニュースへ入ってください。各ニュースは「## 番号. 見出し」「**出典：** [媒体名の記事を読む](記事URL)」「**要旨：** 4〜7文」「### ポイント」「### 注意点」の順に統一してください。要旨では発表・報道の内容だけでなく、背景、重要性、利用者や業界への影響を、候補に含まれる情報の範囲で250〜450字程度にまとめてください。短い言い換えだけで終わらせず、一方で推測による水増しは禁止します。「要旨（事実）」という表現は禁止です。最後に定型の総括、注意書き、参考リンク一覧を繰り返さないでください。各ニュースの出典リンクとselectedSourceUrlsには候補のURLを一字も変更せず正確に使ってください。JSONで title, description, category, bodyMarkdown, selectedSourceUrls を返してください。候補: ${JSON.stringify(candidatesForAi)}`,
+  input: `次の候補から日本語読者に重要なAIニュースを最大10件選び、読みやすく内容の濃いデイリーダイジェストを作成してください。企業・研究機関による一次情報と報道媒体による二次情報を明確に区別し、情報源にないことを加えないでください。descriptionは記事内容だけを簡潔に1〜2文で書き、作成方法や注意書きは含めないでください。bodyMarkdownは前置きや「イントロ」から始めず、すぐ最初のニュースへ入ってください。各ニュースは「## 番号. 見出し」「**出典：** [媒体名の記事を読む](記事URL)」「**要旨：** 4〜7文」「### ポイント」「### 注意点」の順に統一し、これら各要素の間には必ず空行を1行入れてください。要旨では発表・報道の内容だけでなく、背景、重要性、利用者や業界への影響を、候補に含まれる情報の範囲で250〜450字程度にまとめてください。短い言い換えだけで終わらせず、一方で推測による水増しは禁止します。「要旨（事実）」という表現は禁止です。最後に定型の総括、注意書き、参考リンク一覧を繰り返さないでください。各ニュースの出典リンクとselectedSourceUrlsには候補のURLを一字も変更せず正確に使ってください。JSONで title, description, category, bodyMarkdown, selectedSourceUrls を返してください。候補: ${JSON.stringify(candidatesForAi)}`,
   text: {
     format: {
       type: 'json_schema',
@@ -124,6 +124,11 @@ const response = await client.responses.create({
 });
 
 const article = JSON.parse(response.output_text);
+const bodyMarkdown = article.bodyMarkdown
+  .replace(/\n+\*\*要旨：\*\*/g, '\n\n**要旨：**')
+  .replace(/\n+### ポイント/g, '\n\n### ポイント')
+  .replace(/\n+### 注意点/g, '\n\n### 注意点')
+  .replace(/\n+(?=## \d+\.)/g, '\n\n');
 const selected = uniqueItems.filter((item) => article.selectedSourceUrls.includes(item.link));
 if (!selected.length) throw new Error('生成記事に有効な出典URLがありません。');
 
@@ -144,7 +149,7 @@ sources:
 ${yamlSources}
 ---
 
-${article.bodyMarkdown}
+${bodyMarkdown}
 `;
 
 await mkdir('src/content/news', { recursive: true });
